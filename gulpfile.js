@@ -64,6 +64,12 @@ const options = {
                     allowedAttributes: ["id", "class", /^data(-\w+)+$/]
                 }
             },
+            {
+                plugin: require("markdown-it-implicit-figures"),
+                options: {
+                    figcaption: true
+                }
+            }
         ]
     }
 }

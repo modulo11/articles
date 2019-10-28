@@ -2240,6 +2240,11 @@ markdown-it-github-headings@^1.1.2:
     github-slugger "^1.1.1"
     innertext "^1.0.1"
 
+markdown-it-implicit-figures@^0.9.0:
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/markdown-it-implicit-figures/-/markdown-it-implicit-figures-0.9.0.tgz#21bf562ab4fd177828febb5e24eda571cf9d1a58"
+  integrity sha512-ykLQZmhy8QnNEm6NgImIrr+/QMe7gSnHgLhNAjz9GGCNdSLR7C/SLFNwGdUZq7vK3a0myWiOYE0tpaZuB0rWWw==
+
 markdown-it@*, markdown-it@^10.0.0:
   version "10.0.0"
   resolved "https://registry.yarnpkg.com/markdown-it/-/markdown-it-10.0.0.tgz#abfc64f141b1722d663402044e43927f1f50a8dc"
