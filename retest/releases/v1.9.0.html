@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Version v1.9.0</title>
+
+    <link rel="stylesheet" href="/articles/assets/css/index.css">
+    <link rel="stylesheet" href="/articles/retest/assets/css/index.css">
+
+</head>
+
+<body>
+    <header id="header" class="sticky-top">
+        <nav class="navbar navbar-expand navbar-light">
+            <a href="/articles/retest/releases" class="navbar-brand">
+                <img src="/articles/retest/assets/images/logo.svg" alt="Logo">
+            </a>
+        </nav>
+        <div class="alert alert-warning alert-dismissible fade show text-center" role="alert">
+            This article is still work in progress. Things may changed, added or removed completely.
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    </header>
+
+    <article class="markdown-body">
+        <h1><a id="user-content-version-190" class="anchor" href="#version-190" aria-hidden="true"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewbox="0 0 16 16" width="16"><path d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Version 1.9.0</h1>
+<p>Welcome to version 1.9.0 of <a href="https://github.com/retest/recheck/blob/master/CHANGELOG.md"><em><strong>recheck</strong></em></a>, <a href="https://github.com/retest/recheck-web/blob/master/CHANGELOG.md"><em><strong>recheck-web</strong></em></a>, <a href="https://github.com/retest/recheck.cli/blob/master/CHANGELOG.md"><em><strong>recheck.cli</strong></em></a> and <em><strong>review</strong></em>. For more information, please refer to the specific changelogs.</p>
+<p>We have developed some new features to improve your workflow:</p>
+<ol>
+<li><a href="#code-healing"><strong>Code healing</strong></a>: Heal your broken tests automatically.</li>
+<li><a href="#ignore-fallback"><strong>Ignore fallback</strong></a>: Ignore changes even if no project is available.</li>
+<li><a href="#zoom-screenshots"><strong>Zoom screenshots</strong></a>: Focus on the element changed instead of the whole page.</li>
+<li><a href="#disabled-screenshots"><strong>Disabled screenshots</strong></a>: Instantly show if screenshots have been disabled during testing.</li>
+<li>And as always general <a href="#improvements">improvements</a> and <a href="#bug-fixes">bug fixes</a>.</li>
+</ol>
+<h2><a id="user-content-code-healing" class="anchor" href="#code-healing" aria-hidden="true"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewbox="0 0 16 16" width="16"><path d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Code healing</h2>
+<p>This feature is available with <em><strong>recheck-web</strong></em> and <em><strong>review</strong></em> (Standard). For more information, please refer to this <a href="../recheck-web/healing.html">feature article</a>.</p>
+<p>While using <em><strong>recheck-web</strong></em> and the unbreakable feature, either via <code>UnbreakableDriver</code> or <code>RecheckDriver</code>, you may have encountered log messages similar to:</p>
+<pre><code class="hljs language-plaintext">*************** recheck warning ***************
+The HTML id attribute used for element identification changed from 'user' to 'username'.
+retest identified the element based on the persisted Golden Master.
+If you apply these changes to the Golden Master , your test de.retest.web.FormTest will break.
+Use `By.id("username")` or `By.retestId("user")` to update your test FormTest.java:47.
+</code></pre>
+<p>Up until now, you had to do these changes manually as suggested by this message.</p>
+<p>Firstly, <em><strong>recheck</strong></em> will now properly show the warnings in the concluding difference report for each test.</p>
+<pre><code class="hljs language-plaintext">4 check(s) in 'de.retest.web.FormTest' found the following difference(s):
+Test 'form_should_fill_in_user_and_password_and_redirect_to_dashboard' has 8 difference(s) in 4 state(s):
+00 resulted in:
+    input at 'html[1]/body[1]/div[1]/div[1]/form[1]/input[1]':
+        id: expected="login", actual="btn-login"
+        ...
+    input at 'html[1]/body[1]/div[1]/div[1]/form[1]/div[1]/input[1]':
+        id: expected="user", actual="username", breaks="FormTest.java:47"
+...
+02 resulted in:
+    input at 'html[1]/body[1]/div[1]/div[1]/form[1]/input[1]':
+        id: expected="login", actual="btn-login", breaks="FormTest.java:52"
+        ...
+...
+</code></pre>
+<p>Secondly, <em><strong>review</strong></em> (Standard) is now able to use these warnings and automatically heal your tests. To indicate that these changes will break your test, <em><strong>review</strong></em> will now display a appropriate warning, too. Note the selected line next to the “Accept” checkbox.</p>
+<figure><img src="../recheck-web/assets/images/review-healing.png" alt="Opened  with review."><figcaption>Opened <code>FormTest.report</code> with <em><strong>review</strong></em>.</figcaption></figure>
+<p>If you accept such a breaking change and apply your report, <em><strong>review</strong></em> will collect all warnings, try to find each affected test and lines and replace the identifier. Afterwards you can simply commit the updated Golden Masters as well as the updated tests without having to touch them manually. Note that in order for this to work, you must open the report from within your project.</p>
+<blockquote>
+<p>Code healing is an early feature and might not work for every use case. We would love to hear feedback and suggestions from you as we further develop this feature.</p>
+</blockquote>
+<h2><a id="user-content-ignore-fallback" class="anchor" href="#ignore-fallback" aria-hidden="true"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewbox="0 0 16 16" width="16"><path d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Ignore fallback</h2>
+<p>This feature is available with <em><strong>recheck</strong></em>, thus it works for both <em><strong>review</strong></em> and <em><strong>recheck.cli</strong></em>.</p>
+<p>If you open a report, which does not reside within a project, you are now able to ignore changes. These changes are saved to <code>${user.home}/.retest/recheck.ignore</code>. This is useful if you, for example, open a report generated from the chrome extension or download it directly from <em><strong>rehub</strong></em>. Note that you are not able to accept, since no project and thus no Golden Master could be found.</p>
+<figure><img src="assets/images/v1.9.0/review-ignore.png" alt="Opened  with review without a project."><figcaption>Opened <code>FormTest.report</code> with <em><strong>review</strong></em> without a project.</figcaption></figure>
+<h2><a id="user-content-zoom-screenshots" class="anchor" href="#zoom-screenshots" aria-hidden="true"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewbox="0 0 16 16" width="16"><path d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Zoom screenshots</h2>
+<p>This feature is available in <em><strong>review</strong></em>.</p>
+<p>Viewing elements in a large web page causes these elements to be displayed very small. This is reflected within the screenshot and thus draws the corresponding rectangle around the small element, resulting for the change to be almost invisible in the displayed screenshot. With review such elements are now being zoomed to, showing the element and some context in the screenshot.</p>
+<figure><img src="assets/images/v1.9.0/review-zoom.png" alt="The element difference is zoomed in, showing only some context around the element instead of the whole page."><figcaption>The element difference is zoomed in, showing only some context around the element instead of the whole page.</figcaption></figure>
+<h2><a id="user-content-disabled-screenshots" class="anchor" href="#disabled-screenshots" aria-hidden="true"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewbox="0 0 16 16" width="16"><path d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Disabled screenshots</h2>
+<p>This feature is available in <em><strong>review</strong></em>.</p>
+<p>If you have screenshots disabled, you are now being told so instead of endlessly waiting for the screenshot to load. This works for all kind combinations—any screenshot not present will now instantly display:</p>
+<ol>
+<li>Screenshots enabled.</li>
+<li>Screenshots disabled.</li>
+<li>Screenshots only enabled for Golden Master creation or only test execution.</li>
+</ol>
+<figure><img src="assets/images/v1.9.0/review-screenshots.png" alt="Instantly show if there are no screenshots."><figcaption>Instantly show if there are no screenshots.</figcaption></figure>
+<h2><a id="user-content-improvements" class="anchor" href="#improvements" aria-hidden="true"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewbox="0 0 16 16" width="16"><path d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Improvements</h2>
+<ul>
+<li>When updating Golden Masters, now the name of the file is returned, not the name of the Golden Master (<em><strong>recheck</strong></em>).</li>
+<li>Mixing of implicit and explicit checking is now prevented with an exception as it produced unexpected behavior. This should resolve strange behavior if mixing <code>Recheck#check</code> with <code>AutocheckingDriver</code>. For more information, please check out the <a href="https://docs.retest.de/recheck-web/introduction/usage/">documentation</a> (<em><strong>recheck-web</strong></em>).</li>
+<li>Disable reordering of table columns which made it difficult to reliably click the checkbox “Accept All” or “Ignore All” (<em><strong>review</strong></em>).</li>
+</ul>
+<h2><a id="user-content-bug-fixes" class="anchor" href="#bug-fixes" aria-hidden="true"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewbox="0 0 16 16" width="16"><path d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Bug fixes</h2>
+<ul>
+<li>Reduce the amount of attempts to find the project root (<em><strong>recheck</strong></em>).</li>
+<li>Fix nested <code>iframes</code> not being analyzed (<em><strong>recheck-web</strong></em>).</li>
+</ul>
+
+    </article>
+
+    <footer id="footer" class="fixed-bottom">
+        <div class="text-muted text-right mr-1 mb-1">This is an early draft.</div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+</body>
+
+</html>

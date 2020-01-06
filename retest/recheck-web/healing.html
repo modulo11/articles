@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Automatic Code Healing with recheck-web</title>
+
+    <link rel="stylesheet" href="/articles/assets/css/index.css">
+    <link rel="stylesheet" href="/articles/retest/assets/css/index.css">
+
+</head>
+
+<body>
+    <header id="header" class="sticky-top">
+        <nav class="navbar navbar-expand navbar-light">
+            <a href="/articles/retest/recheck-web" class="navbar-brand">
+                <img src="/articles/retest/assets/images/logo.svg" alt="Logo">
+            </a>
+        </nav>
+        <div class="alert alert-warning alert-dismissible fade show text-center" role="alert">
+            This article is still work in progress. Things may changed, added or removed completely.
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    </header>
+
+    <article class="markdown-body">
+        <h1><a id="user-content-automatic-code-healing-with-recheck-web" class="anchor" href="#automatic-code-healing-with-recheck-web" aria-hidden="true"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewbox="0 0 16 16" width="16"><path d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Automatic Code Healing with recheck-web</h1>
+<p><a href="https://selenium.dev/">Selenium</a> is a established standard for browser automation. However, it is primarily used to write tests for websites, testing simple functionality like loading your page or testing an entire user story.</p>
+<p>The main problem using Selenium is to find the elements you want to interact with. Let it be a button you can click, input field to type text in or other elements on the page. You need to find an identification attribute that finds the element you are looking for—and <em>only</em> the specific element. If you have control over the website, this can be quite simple by specifying an <code>id</code> using <code>By.id( &quot;your id&quot; )</code>. But in case you do not have control of the site (e.g. your <code>id</code> is randomly generated) this often requires either complex XPath queries or CSS selectors. As both approaches only identify the element by a single attribute, resulting tests are brittle and break easily, if the specified attribute changes.</p>
+<p>This is where <a href="https://github.com/retest/recheck-web"><em><strong>recheck-web</strong></em></a>, an Open Source Golden Master based approach comes in. It builds on top of Selenium Java and is able to find elements based on all available attributes, thus preventing test breakage. However, prior to version 1.9.0, accepting the breaking change would still result in the test breaking, thus only postponing the test breakage. Introducing: Code healing in version 1.9.0.<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup> Accepting any breaking change will now try to adjust the used identifier <code>By.id( &quot;your id&quot; )</code> to the new value <code>By.id( &quot;your changed id&quot; )</code>.</p>
+<p>This article will firstly introduce <em><strong>recheck-web</strong></em> and describe the underlying problem of breaking tests. Afterwards it will describe the functionality of test healing using <em><strong>review</strong></em>.</p>
+<h2><a id="user-content-unbreakable-tests" class="anchor" href="#unbreakable-tests" aria-hidden="true"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewbox="0 0 16 16" width="16"><path d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Unbreakable Tests</h2>
+<p><em><strong>recheck-web</strong></em> implements <a href="https://docs.retest.de/recheck/introduction/"><em>Difference Testing</em></a> where it converts the state of a website or web application into a <em>Golden Master</em>, capturing all HTML and CSS attributes of all elements. It therefore has much more context available than just the single identifying attribute. It can track changes by looking in the persisted Golden Master, identify the old element and trying to find the new element in the current state, by using all available attributes of the old element, allowing four your test to be essentially unbreakable.</p>
+<p>Transitioning from your basic Selenium test to a truly unbreakable test is quite easy. Take a look at the below login form.</p>
+<figure><img src="assets/images/form.png" alt="Basic Login form for an web application."><figcaption>Basic Login form for an web application.</figcaption></figure>
+<p class="file-header">form.html</p>
+<pre><code class="hljs language-html"><span class="hljs-tag">&lt;<span class="hljs-name">form</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"form-group"</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">label</span> <span class="hljs-attr">for</span>=<span class="hljs-string">"user"</span>&gt;</span>Username<span class="hljs-tag">&lt;/<span class="hljs-name">label</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"text"</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"form-control"</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"user"</span> <span class="hljs-attr">placeholder</span>=<span class="hljs-string">"Username"</span>&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"form-group"</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">label</span> <span class="hljs-attr">for</span>=<span class="hljs-string">"password"</span>&gt;</span>Password<span class="hljs-tag">&lt;/<span class="hljs-name">label</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"password"</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"form-control"</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"password"</span> <span class="hljs-attr">placeholder</span>=<span class="hljs-string">"Password"</span>&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"login"</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"submit"</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"btn btn-primary"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"Login"</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">form</span>&gt;</span>
+</code></pre>
+<p>We write the following <em><strong>recheck-web</strong></em> Test with JUnit 5 and execute it twice so that the Golden Masters are created with the first execution and compared against with the second execution. For a guide on how to transition from your standard Selenium Test to a <em><strong>recheck-web</strong></em> test, please refer to the <a href="https://docs.retest.de/recheck-web/introduction/usage/">documentation</a>.</p>
+<p class="file-header">FormTest.java</p>
+<pre><code class="hljs language-java"><span class="hljs-meta">@ExtendWith</span>( RecheckExtension<span class="hljs-class">.<span class="hljs-keyword">class</span> )
+<span class="hljs-title">public</span> <span class="hljs-title">class</span> <span class="hljs-title">FormTest</span> </span>{
+
+	WebDriver driver;
+
+	<span class="hljs-meta">@BeforeEach</span>
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">setUp</span><span class="hljs-params">()</span> </span>{
+		<span class="hljs-keyword">final</span> ChromeOptions options = <span class="hljs-keyword">new</span> ChromeOptions();
+		<span class="hljs-comment">// Set headless=true to avoid minimal pixel changes or unexpected input </span>
+		options.setHeadless( <span class="hljs-keyword">true</span> );
+
+		<span class="hljs-keyword">final</span> ChromeDriver driver = <span class="hljs-keyword">new</span> ChromeDriver( options );
+		<span class="hljs-comment">// Set window=1280x800 to ensure repeatability</span>
+		driver.manage().window().setSize( <span class="hljs-keyword">new</span> Dimension( <span class="hljs-number">1280</span>, <span class="hljs-number">800</span> ) );
+
+		<span class="hljs-comment">// Wrap in a RecheckDriver to enable unbreakable and auto checking</span>
+		<span class="hljs-keyword">this</span>.driver = <span class="hljs-keyword">new</span> RecheckDriver( driver );
+	}
+
+	<span class="hljs-meta">@AfterEach</span>
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">tearDown</span><span class="hljs-params">()</span> </span>{
+		<span class="hljs-comment">// Close the driver after a test</span>
+		driver.quit();
+	}
+
+	<span class="hljs-meta">@Test</span>
+	<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">form_should_fill_in_user_and_password_and_redirect_to_dashboard</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception </span>{
+		<span class="hljs-comment">// 00 Navigate to the web application</span>
+		driver.get( getClass().getResource( <span class="hljs-string">"form.html"</span> ).toExternalForm() );
+
+		<span class="hljs-comment">// 01 Find the user input by the id and type the username</span>
+		driver.findElement( By.id( <span class="hljs-string">"user"</span> ) ).sendKeys( <span class="hljs-string">"admin"</span> );
+		<span class="hljs-comment">// 02 Find the password input by the id and type the secret password</span>
+		driver.findElement( By.id( <span class="hljs-string">"password"</span> ) ).sendKeys( <span class="hljs-string">"secret"</span> );
+
+		<span class="hljs-comment">// 03 Find login by id and click</span>
+		driver.findElement( By.id( <span class="hljs-string">"login"</span> ) ).submit();
+	}
+}
+</code></pre>
+<p>This test will create four Golden Masters, each for the respective action:</p>
+<ol>
+<li>Load the web application.</li>
+<li>Type user “admin”.</li>
+<li>Type password “secret”.</li>
+<li>Click Login.</li>
+</ol>
+<p>However, we do not yet use the unbreakable feature. We just prepared the test in case any changes occur that would break a standard Selenium test.</p>
+<p>Assume that we are improving the login for the next versions of the web application. The modifications should not alter the look and the user should still see the same GUI as shown above. Thus we only change some invisible attributes—do you spot them all?</p>
+<p class="file-header">form.html</p>
+<pre><code class="hljs language-html"><span class="hljs-tag">&lt;<span class="hljs-name">form</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"form-group"</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">label</span> <span class="hljs-attr">for</span>=<span class="hljs-string">"username"</span>&gt;</span>Username<span class="hljs-tag">&lt;/<span class="hljs-name">label</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"text"</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"form-control"</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"username"</span> <span class="hljs-attr">placeholder</span>=<span class="hljs-string">"Username"</span>&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"form-group"</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">label</span> <span class="hljs-attr">for</span>=<span class="hljs-string">"password"</span>&gt;</span>Password<span class="hljs-tag">&lt;/<span class="hljs-name">label</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"password"</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"form-control"</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"password"</span> <span class="hljs-attr">placeholder</span>=<span class="hljs-string">"Password"</span>&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"btn-login"</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"submit"</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"btn btn-primary"</span>&gt;</span>Login<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">form</span>&gt;</span>
+</code></pre>
+<p>Using standard Selenium, the changes would be quite critical as we changed some <code>ids</code> which we use in the test, essentially breaking the test (despite the fact that the user would not notice the difference). Luckily enough, we use the unbreakable feature. Instead of throwing a <code>NoSuchElementException</code>, the test still runs through and is able to log into the web application. It notes the following differences:</p>
+<ol>
+<li>
+<p>Upon encountering the broken element, <em><strong>recheck</strong></em> will print a warning stating what changed and what needs to be done in order to fix it. Note that the <code>retestId</code> is a stable attribute, generated by <em><strong>recheck</strong></em>; it will never change.</p>
+<pre><code class="hljs language-plaintext">*************** recheck warning ***************
+The HTML id attribute used for element identification changed from 'user' to 'username'.
+retest identified the element based on the persisted Golden Master.
+If you apply these changes to the Golden Master , your test de.retest.web.FormTest will break.
+Use `By.id("username")` or `By.retestId("user")` to update your test FormTest.java:47.
+</code></pre>
+</li>
+<li>
+<p>The output containing the difference states that the warnings have been encountered. Note the change for the second input element, representing the input <code>user</code>. Accepting this change will break the <code>FormTest.java:47</code>, thus you should either manually perform the update or use the automatic code healing from <em><strong>review</strong></em>. Although we changed the <code>id</code> for the button “Login”, it is not noted as breaking change, since this is not relevant for the first check, typing in the username. It is only note in the last step where the button is actually pressed.</p>
+<pre><code class="hljs language-plaintext">4 check(s) in 'de.retest.web.FormTest' found the following difference(s):
+Test 'form_should_fill_in_user_and_password_and_redirect_to_dashboard' has 8 difference(s) in 4 state(s):
+00 resulted in:
+	input at 'html[1]/body[1]/div[1]/div[1]/form[1]/input[1]':
+		id: expected="login", actual="btn-login"
+		...
+	input at 'html[1]/body[1]/div[1]/div[1]/form[1]/div[1]/input[1]':
+		id: expected="user", actual="username", breaks="FormTest.java:47"
+...
+02 resulted in:
+    input at 'html[1]/body[1]/div[1]/div[1]/form[1]/input[1]':
+        id: expected="login", actual="btn-login", breaks="FormTest.java:52"
+        ...
+...
+</code></pre>
+</li>
+</ol>
+<p>Still, we are not truly unbreakable, since applying these changes will update the Golden Master and thus still break the test, since <em><strong>recheck</strong></em> is not able to find the old <code>id</code> anymore. Thus we only postponed the test breakage.</p>
+<p>We could go ahead and ignore the shown differences, making our test green again, but ultimately it would break.</p>
+<h3><a id="user-content-code-healing" class="anchor" href="#code-healing" aria-hidden="true"><svg aria-hidden="true" class="octicon octicon-link" height="16" version="1.1" viewbox="0 0 16 16" width="16"><path d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Code Healing</h3>
+<p>Code healing is available using <em><strong>recheck-web</strong></em> 1.9.0 together with <em><strong>review</strong></em> 1.9.0 while using a standard license. Simply open a report that contains warnings, indicated via the log as above and you will see a similar output as below. Note the selected line displays a warning icon, indicating that this is a breaking change.</p>
+<figure><img src="assets/images/review-healing.png" alt="Opened  with review"><figcaption>Opened <code>FormTest.report</code> with <em><strong>review</strong></em></figcaption></figure>
+<p>After accepting all differences, the breaking changes are collected per file and each affected file is healed by searching for the appropriate line and replacing the value <code>By.id( &quot;user&quot; )</code> to <code>By.id( &quot;username&quot; )</code>.</p>
+<p class="file-header">FormTest.java</p>
+<pre><code class="hljs language-diff">        driver.get( getClass().getResource( "form.html" ).toExternalForm() );
+
+        // Find the user input by the id and type the username
+<span class="hljs-deletion">-       driver.findElement( By.id( "user" ) ).sendKeys( "admin" );</span>
+<span class="hljs-addition">+       driver.findElement( By.id( "username" ) ).sendKeys( "admin" );</span>
+        // Find the password input by the id and type the secret password
+        driver.findElement( By.id( "password" ) ).sendKeys( "secret" );
+
+        // Find submit by tag and click
+<span class="hljs-deletion">-       driver.findElement( By.id( "login" ) ).submit();</span>
+<span class="hljs-addition">+       driver.findElement( By.id( "btn-login" ) ).submit();</span>
+    }
+}
+</code></pre>
+<p>With this feature, you must only create the initial test and freely change the GUI, while <em><strong>recheck-web</strong></em> will keep your tests from breaking—but if they do, <em><strong>review</strong></em> will keep your tests up to date, eliminating the manual work completely.</p>
+<blockquote>
+<p>Code healing is an early feature and might not work for every use case. We would love to hear feedback and suggestions from you as we further develop this feature.</p>
+</blockquote>
+<hr class="footnotes-sep">
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn1" class="footnote-item"><p>Code healing is only available through <em><strong>review</strong></em> using a standard license. <a href="#fnref1" class="footnote-backref">↩︎</a></p>
+</li>
+</ol>
+</section>
+
+    </article>
+
+    <footer id="footer" class="fixed-bottom">
+        <div class="text-muted text-right mr-1 mb-1">This is an early draft.</div>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+</body>
+
+</html>
