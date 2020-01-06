@@ -1,0 +1,26 @@
+{
+  "name": "markdown-to-html",
+  "author": "diba1013",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "clean": "gulp clean",
+    "build": "gulp build",
+    "watch": "gulp watch"
+  },
+  "devDependencies": {
+    "del": "^5.1.0",
+    "github-markdown-css": "^3.0.1",
+    "gulp": "^4.0.2",
+    "gulp-csso": "^3.0.1",
+    "gulp-hb": "^8.0.0",
+    "gulp-inline-source": "^4.0.0",
+    "gulp-markdownit": "^1.0.3",
+    "gulp-rename": "^1.4.0",
+    "gulp-sass": "^4.0.2",
+    "markdown-it": "^10.0.0",
+    "markdown-it-attrs": "^3.0.1",
+    "markdown-it-footnote": "^3.0.2",
+    "markdown-it-github-headings": "^1.1.2"
+  }
+}

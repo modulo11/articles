@@ -1,0 +1,12 @@
+.vscode
+
+# Node directories
+node_modules
+
+# Build directories
+dist
+out
+docs
+
+# Ignore Yarn error logs
+yarn-error.log

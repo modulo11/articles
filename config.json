@@ -1,0 +1,11 @@
+{
+    "root": "src",
+    "out": "docs",
+    "standalone": false,
+    "files": [
+        {
+            "title": "Example Article",
+            "name": "index"
+        }
+    ]
+}
