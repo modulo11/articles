@@ -146,8 +146,7 @@ function injectHTML(article) {
             const engine = handlebars()
                 .partials(src.handlebars.partials)
                 .data({
-                    title: article.title,
-                    name: article.name,
+                    article: article,
                     content: read(`${out.raw}/${article.name}.html`),
                 })
 
