@@ -2,10 +2,15 @@
     "root": "src",
     "out": "docs",
     "standalone": false,
-    "files": [
+    "categories": [
         {
-            "title": "Example Article",
-            "name": "index"
+            "name": "index",
+            "files": [
+                {
+                    "title": "Example Article",
+                    "name": "index"
+                }
+            ]
         }
     ]
 }

@@ -19,24 +19,34 @@ const src = {
         partials: `${config.root}/assets/partials/**/*.hbs`,
         template: `${config.root}/assets/template.hbs`,
     },
-    css: `${config.root}/assets/css/*.sass`,
-    images: `${config.root}/assets/images/**`,
+    logo: `assets/images/logo.svg`
 }
 
-const out = {
-    root: `${config.out}`,
-    raw: `${config.out}/raw`,
-    standalone: `${config.out}/standalone`,
-    css: `${config.out}/assets/css`,
-    images: `${config.out}/assets/images`
-}
-
-const articles = config.files.map(article => {
+const categories = config.categories.map(category => {
+    const path = category.root || "."
+    const root = category.root ? `categories/${path}` : "src";
     return {
-        title: article.title,
-        name: article.name,
-        src: `${src.markdown}/${article.name}.md`,
-        wip: article.wip
+        name: category.name,
+        path: path,
+        root: root,
+        src: {
+            css: `${root}/assets/css/*.sass`,
+            images: `${root}/assets/images/**`
+        },
+        out: {
+            css: `${config.out}/${path}/assets/css`,
+            images: `${config.out}/${path}/assets/images`
+        },
+        logo: exists(`${root}/${src.logo}`) ? `${path}/${src.logo}` : `${src.logo}`,
+        articles: category.files.map(article => {
+            return {
+                title: article.title,
+                name: article.name,
+                wip: article.wip,
+                src: `${root}/${article.name}.md`,
+                out: `${config.out}/${path}`
+            }
+        })
     }
 })
 
@@ -116,55 +126,71 @@ function clean(src, alt) {
 
 // Misc
 
-public("copy:img", copy(src.images, out.images, "img"))
+function copyImages(category) {
+    return private(
+        `copy:img:${category.name}`,
+        copy(category.src.images, category.out.images)
+    );
+}
 
-// CSS
+function compileCSS(category) {
+    return private(
+        `compile:css:${category.name}`,
+        () => {
+            return gulp.src(category.src.css)
+                .pipe(sass(options.sass))
+                .pipe(csso())
+                .pipe(gulp.dest(category.out.css))
+        }
+    );
+}
 
-public("compile:css", () => {
-    return gulp.src(src.css)
-        .pipe(sass(options.sass))
-        .pipe(csso())
-        .pipe(gulp.dest(out.css))
-})
+function buildCategory(category) {
+    return gulp.parallel(
+        copyImages(category),
+        compileCSS(category)
+    )
+}
 
 // Markdown to HTML
 
-function compileMarkdown(article) {
+function compileMarkdown(category, article) {
     return private(
-        `compile:html:${article.name}`,
+        `compile:html:${category.name}:${article.name}`,
         () => {
             return gulp.src(article.src)
                 .pipe(markdown(options.markdown))
-                .pipe(gulp.dest(out.raw))
+                .pipe(gulp.dest(`${article.out}/raw`))
         }
     )
 }
 
-function injectHTML(article) {
+function injectHTML(category, article) {
     return private(
-        `build:html:${article.name}`,
+        `build:html:${category.name}:${article.name}`,
         () => {
             const engine = handlebars()
                 .partials(src.handlebars.partials)
                 .data({
+                    category: category,
                     article: article,
-                    content: read(`${out.raw}/${article.name}.html`),
+                    content: read(`${article.out}/raw/${article.name}.html`),
                 })
 
             const template = gulp.src(src.handlebars.template)
                 .pipe(engine) //
                 .pipe(rename(`${article.name}.html`))
-                .pipe(gulp.dest(out.root))
+                .pipe(gulp.dest(article.out))
 
             if (config.standalone) {
                 return template
                     .pipe(inline({
                         attribute: false,
-                        rootpath: out.root,
+                        rootpath: config.out,
                         saveRemote: false,
                         svgAsImage: true,
                     }))
-                    .pipe(gulp.dest(out.standalone))
+                    .pipe(gulp.dest(`${article.out}/standalone`))
             }
 
             return template;
@@ -172,18 +198,26 @@ function injectHTML(article) {
     )
 }
 
+function buildMarkdown(category, article) {
+    return gulp.series(
+        compileMarkdown(category, article),
+        injectHTML(category, article)
+    )
+}
+
 public("build:md", gulp.parallel(
-    articles.map(article => {
-        return gulp.series(
-            compileMarkdown(article),
-            injectHTML(article)
+    categories.map(category => {
+        return gulp.parallel(
+            category.articles.map(article => {
+                return buildMarkdown(category, article)
+            })
         )
     })
 ))
 
 // Global
 
-public("clean", clean(out.root));
+public("clean", clean(config.out));
 
 public("watch", () => {
     return gulp.watch([
@@ -195,7 +229,10 @@ public("watch", () => {
 });
 
 public("build", gulp.series(
-    gulp.parallel("copy:img", "compile:css"), // Ensure these compiled files are available for markdown html
+    // Ensure these compiled files are available for markdown html
+    gulp.parallel(
+        categories.map(buildCategory)
+    ),
     "build:md"
 ));
 
