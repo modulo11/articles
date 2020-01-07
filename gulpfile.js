@@ -36,6 +36,7 @@ const articles = config.files.map(article => {
         title: article.title,
         name: article.name,
         src: `${src.markdown}/${article.name}.md`,
+        wip: article.wip
     }
 })
 
