@@ -2,9 +2,9 @@
     <nav class="navbar navbar-expand navbar-light">
         <a href="/" class="navbar-brand">
             {{#if category.logo}}
-            <img src="/{{category.logo}}" alt="Logo">
+            <img src="{{server.path}}/{{category.logo}}" alt="Logo">
             {{else}}
-            <img src="/assets/images/logo.svg" alt="Logo">
+            <img src="{{server.path}}/assets/images/logo.svg" alt="Logo">
             {{/if}}
         </a>
     </nav>

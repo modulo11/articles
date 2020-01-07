@@ -174,6 +174,7 @@ function injectHTML(category, article) {
                 .data({
                     category: category,
                     article: article,
+                    server: config.server,
                     content: read(`${article.out}/raw/${article.name}.html`),
                 })
 

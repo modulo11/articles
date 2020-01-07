@@ -1,6 +1,9 @@
 {
     "root": "src",
     "out": "articles",
+    "server": {
+        "path": "/articles"
+    },
     "standalone": false,
     "categories": [
         {
