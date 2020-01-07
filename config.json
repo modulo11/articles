@@ -15,6 +15,13 @@
                 {
                     "name": "recheck-web"
                 }
+            ],
+            "files": [
+                {
+                    "title": "Writing a Modular Typescript Project",
+                    "name": "modular",
+                    "wip": true
+                }
             ]
         }
     ],
