@@ -53,6 +53,7 @@ const categories = config.categories.map(category => {
         articles: articles,
         data: {
             logo: exists(`${root}/${src.logo}`) ? `${path}/${src.logo}` : `${src.logo}`,
+            path: category.root ? category.name : undefined,
             articles: articles.map(article => article.data)
         }
     }
