@@ -79,6 +79,9 @@ const options = {
                 options: {
                     figcaption: true
                 }
+            },
+            {
+                plugin: require("markdown-it-highlightjs")
             }
         ]
     }
