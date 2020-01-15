@@ -58,7 +58,6 @@ const options = {
     },
     markdown: {
         options: {
-            html: true,
             linkify: true,
             typographer: true,
         },
