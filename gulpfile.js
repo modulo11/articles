@@ -25,6 +25,17 @@ const src = {
 const categories = config.categories.map(category => {
     const path = category.root || "."
     const root = category.root ? `categories/${path}` : "src";
+
+    const articles = category.files.map(article => {
+        return {
+            title: article.title,
+            name: article.name,
+            wip: article.wip,
+            src: `${root}/${article.name}.md`,
+            out: `${config.out}/${path}`
+        }
+    })
+
     return {
         name: category.name,
         path: path,
@@ -38,15 +49,7 @@ const categories = config.categories.map(category => {
             images: `${config.out}/${path}/assets/images`
         },
         logo: exists(`${root}/${src.logo}`) ? `${path}/${src.logo}` : `${src.logo}`,
-        articles: category.files.map(article => {
-            return {
-                title: article.title,
-                name: article.name,
-                wip: article.wip,
-                src: `${root}/${article.name}.md`,
-                out: `${config.out}/${path}`
-            }
-        })
+        articles: articles,
     }
 })
 
