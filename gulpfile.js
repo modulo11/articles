@@ -28,11 +28,13 @@ const categories = config.categories.map(category => {
 
     const articles = category.files.map(article => {
         return {
-            title: article.title,
             name: article.name,
-            wip: article.wip,
             src: `${root}/${article.name}.md`,
-            out: `${config.out}/${path}`
+            out: `${config.out}/${path}`,
+            data: {
+                title: article.title,
+                wip: article.wip
+            }
         }
     })
 
@@ -48,8 +50,11 @@ const categories = config.categories.map(category => {
             css: `${config.out}/${path}/assets/css`,
             images: `${config.out}/${path}/assets/images`
         },
-        logo: exists(`${root}/${src.logo}`) ? `${path}/${src.logo}` : `${src.logo}`,
         articles: articles,
+        data: {
+            logo: exists(`${root}/${src.logo}`) ? `${path}/${src.logo}` : `${src.logo}`,
+            articles: articles.map(article => article.data)
+        }
     }
 })
 
@@ -177,8 +182,8 @@ function injectHTML(category, article) {
             const engine = handlebars()
                 .partials(src.handlebars.partials)
                 .data({
-                    category: category,
-                    article: article,
+                    category: category.data,
+                    article: article.data,
                     server: config.server,
                     content: read(`${article.out}/raw/${article.name}.html`),
                 })
