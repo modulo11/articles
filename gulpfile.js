@@ -106,7 +106,7 @@ function clean(src, alt) {
 
 // Category
 
-function createCategory(root, category) {
+function createCategory(root, parent, category) {
     const src = resolve(root.src, category.path || category.name);
     const out = resolve(root.out, category.name);
 
@@ -115,7 +115,11 @@ function createCategory(root, category) {
         out: out
     }
 
-    const categories = category.categories ? category.categories.map(c => createCategory(paths, c)) : undefined
+    const data = {
+        logo: exists(resolve(src, "src/assets/images/logo.svg")) ? resolve(out, "assets/images/logo.svg") : parent.logo
+    }
+
+    const categories = category.categories ? category.categories.map(c => createCategory(paths, data, c)) : undefined
     const articles = category.files ? category.files.map(a => createArticle({ src: src, out: out }, a)) : undefined;
 
     return {
@@ -132,7 +136,7 @@ function createCategory(root, category) {
         articles: articles,
         categories: categories,
         data: {
-            logo: exists(resolve(src, "src/assets/images/logo.svg")) ? resolve(out, "assets/images/logo.svg") : `assets/images/logo.svg`,
+            logo: data.logo,
             path: out,
             articles: articles ? articles.map(article => article.data) : undefined
         }
@@ -252,6 +256,6 @@ function flattenTasks(category) {
 
 public("clean", clean(config.out));
 
-public("build", flattenTasks(createCategory({}, config)));
+public("build", flattenTasks(createCategory({}, {}, config)));
 
 public("install", gulp.series("clean", "build"));
