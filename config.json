@@ -5,15 +5,10 @@
         "path": "/articles"
     },
     "standalone": false,
-    "categories": [
+    "files": [
         {
-            "name": "index",
-            "files": [
-                {
-                    "title": "Example Article",
-                    "name": "index"
-                }
-            ]
+            "title": "Example Article",
+            "name": "index"
         }
     ]
 }
