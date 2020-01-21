@@ -13,6 +13,6 @@ deploy:
   provider: pages
   github_token: $GITHUB_TOKEN
   skip_cleanup: true
-  local_dir: docs
+  local_dir: dist/articles
   on:
     branch: master

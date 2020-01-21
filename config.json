@@ -1,6 +1,6 @@
 {
     "root": "src",
-    "out": "articles",
+    "out": "dist/articles",
     "server": {
         "path": "/articles"
     },
