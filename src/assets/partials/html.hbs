@@ -7,7 +7,9 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>{{article.title}}</title>
 
-    <link rel="stylesheet" href="{{server.path}}/assets/css/index.css">
+    {{#each category.styles as |style index|}}
+    <link rel="stylesheet" href="{{@root.server.path}}/{{style}}">
+    {{/each}}
 
     {{#> head }}
     {{/head}}
