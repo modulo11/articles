@@ -5,6 +5,19 @@
         "path": "/articles"
     },
     "standalone": false,
+    "categories": [
+        {
+            "name": "retest",
+            "categories": [
+                {
+                    "name": "recheck"
+                },
+                {
+                    "name": "recheck-web"
+                }
+            ]
+        }
+    ],
     "files": [
         {
             "title": "Example Article",
