@@ -14,6 +14,15 @@
                 },
                 {
                     "name": "recheck-web"
+                },
+                {
+                    "name": "releases",
+                    "files": [
+                        {
+                            "title": "Releases",
+                            "name": "index"
+                        }
+                    ]
                 }
             ]
         }
