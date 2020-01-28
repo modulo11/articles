@@ -1,20 +1,20 @@
 # Automatic Code Healing with recheck-web
 
-[Selenium](https://selenium.dev/) is a established standard for browser automation. However, it is primarily used to write tests for websites, testing simple functionality like loading your page or testing an entire user story. 
+[Selenium](https://selenium.dev/) is an established standard for browser automation. However, it is primarily used to write tests for websites, testing simple functionality like loading your page or testing an entire user story. 
 
-The main problem using Selenium is to find the elements you want to interact with. Let it be a button you can click, input field to type text in or other elements on the page. You need to find an identification attribute that finds the element you are looking for&mdash;and *only* the specific element. If you have control over the website, this can be quite simple by specifying an `id` using `By.id( "your id" )`. But in case you do not have control of the site (e.g. your `id` is randomly generated) this often requires either complex XPath queries or CSS selectors. As both approaches only identify the element by a single attribute, resulting tests are brittle and break easily, if the specified attribute changes.
+The main problem using Selenium is finding the elements you want to interact with. Let it be a button you can click, an input field to type text in or other elements on the page. You always need to find/identify the element you are looking for&mdash;and *only* the specific element. If you have control over the website, this can be quite simple by specifying an `id` using `By.id( "your id" )`. But in case you do not have control of the site (e.g. your `id` is randomly generated) this often requires either complex XPath queries or CSS selectors. As both approaches only identify the element by a single attribute, resulting tests are brittle and break easily if the specified attribute changes.
 
-This is where [***recheck-web***](https://github.com/retest/recheck-web), an Open Source Golden Master based approach comes in. It builds on top of Selenium Java and is able to find elements based on all available attributes, thus preventing test breakage. However, prior to version 1.9.0, accepting the breaking change would still result in the test breaking, thus only postponing the test breakage. Introducing: Code healing in version 1.9.0.[^1] Accepting any breaking change will now try to adjust the used identifier `By.id( "your id" )` to the new value `By.id( "your changed id" )`.
+This is where [***recheck-web***](https://github.com/retest/recheck-web), an Open Source Golden Master based approach, comes in. It builds on top of Selenium and is able to find elements based on a mulitude of available attributes, thus preventing test breakage. However, prior to version 1.9.0, accepting the breaking change would still result in the test breaking aswell. Introducing: Code healing in version 1.9.0.[^1] Accepting any breaking change will now try to adjust the used identifier `By.id( "your id" )` to the new value `By.id( "your changed id" )`.
 
-This article will firstly introduce ***recheck-web*** and describe the underlying problem of breaking tests. Afterwards it will describe the functionality of test healing using ***review***.
+This article will introduce ***recheck-web*** and describe the underlying problem of breaking tests. Afterwards it will describe the functionality of test healing using ***review***.
 
 ## Unbreakable Tests
 
-***recheck-web*** implements [*Difference Testing*](https://docs.retest.de/recheck/introduction/) where it converts the state of a website or web application into a *Golden Master*, capturing all HTML and CSS attributes of all elements. It therefore has much more context available than just the single identifying attribute. It can track changes by looking in the persisted Golden Master, identify the old element and trying to find the new element in the current state, by using all available attributes of the old element, allowing four your test to be essentially unbreakable.
+***recheck-web*** implements [*Difference Testing*](https://docs.retest.de/recheck/introduction/) where it converts the state of a website or web application into a *Golden Master*(link-to-docs?), capturing all HTML and CSS attributes of all elements. It therefore has much more context available than just the single identifying attribute. It can track changes by looking in the persisted Golden Master, identify the old element and try to find the new element in the current state. By using all available attributes of the old element your tests become unbreakable.
 
 Transitioning from your basic Selenium test to a truly unbreakable test is quite easy. Take a look at the below login form.
 
-![Basic Login form for an web application.](assets/images/form.png)
+![Basic Login form for a web application.](assets/images/form.png)
 
 form.html {.file-header}
 ```html
@@ -31,7 +31,7 @@ form.html {.file-header}
 </form>
 ```
 
-We write the following ***recheck-web*** Test with JUnit 5 and execute it twice so that the Golden Masters are created with the first execution and compared against with the second execution. For a guide on how to transition from your standard Selenium Test to a ***recheck-web*** test, please refer to the [documentation](https://docs.retest.de/recheck-web/introduction/usage/).
+We execute the following ***recheck-web*** Test with JUnit 5 twice, so that the Golden Masters are created. The first execution creates an initial Golden Master which is compared against with the second execution. For a guide on how to transition from your standard Selenium Test to a ***recheck-web*** test, please refer to the [documentation](https://docs.retest.de/recheck-web/introduction/usage/).
 
 FormTest.java {.file-header}
 ```java
@@ -102,7 +102,7 @@ form.html {.file-header}
 </form>
 ```
 
-Using standard Selenium, the changes would be quite critical as we changed some `ids` which we use in the test, essentially breaking the test (despite the fact that the user would not notice the difference). Luckily enough, we use the unbreakable feature. Instead of throwing a `NoSuchElementException`, the test still runs through and is able to log into the web application. It notes the following differences:
+Using standard Selenium, these changes would be quite critical as we changed some `ids` which we use in the test. This essentially breaks the test (despite the fact that the user would not notice the difference). Luckily enough, we use the unbreakable feature. Instead of throwing a `NoSuchElementException`, the test still passes and is able to log into the web application. It notes the following differences:
 
 1. Upon encountering the broken element, ***recheck*** will print a warning stating what changed and what needs to be done in order to fix it. Note that the `retestId` is a stable attribute, generated by ***recheck***; it will never change.
 
@@ -132,13 +132,13 @@ Using standard Selenium, the changes would be quite critical as we changed some 
     ...
     ```
    
-Still, we are not truly unbreakable, since applying these changes will update the Golden Master and thus still break the test, since ***recheck*** is not able to find the old `id` anymore. Thus we only postponed the test breakage. 
+Still, we are not truly unbreakable. Applying these changes will update the Golden Master and thus still break the test, since ***recheck*** is not able to find the old `id` anymore. Thus we only postponed the test breakage. 
 
 We could go ahead and ignore the shown differences, making our test green again, but ultimately it would break.
 
 ### Code Healing
 
-Code healing is available using ***recheck-web*** 1.9.0 together with ***review*** 1.9.0 while using a standard license. Simply open a report that contains warnings, indicated via the log as above and you will see a similar output as below. Note the selected line displays a warning icon, indicating that this is a breaking change.
+Code healing is available using ***recheck-web*** 1.9.0 together with ***review*** 1.9.0 while using at least a standard license. Simply open a report that contains warnings and you will see a similar output as below. Note the selected line displays a warning icon, indicating that this is a breaking change.
 
 ![Opened `FormTest.report` with ***review***](assets/images/review-healing.png)
 
@@ -161,9 +161,9 @@ FormTest.java {.file-header}
 }
 ```
 
-With this feature, you must only create the initial test and freely change the GUI, while ***recheck-web*** will keep your tests from breaking&mdash;but if they do, ***review*** will keep your tests up to date, eliminating the manual work completely.
+With this feature, you can once again focus on improving your webapp, while ***recheck-web*** will keep your tests from breaking. If there are breaking changes, ***review*** will keep your tests up to date, eliminating the manual work completely.
 
-> Code healing is an early feature and might not work for every use case. We would love to hear feedback and suggestions from you as we further develop this feature.
+> Code healing is an early feature and results may vary. We would love to hear feedback and suggestions as we further improve this feature.
 
-[^1]: Code healing is only available through ***review*** using a standard license.
+[^1]: Code healing is only available through ***review*** using at least a standard license.
 
